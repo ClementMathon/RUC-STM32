@@ -36,9 +36,9 @@
 #include "stm32l4xx_it.h"
 
 /* USER CODE BEGIN 0 */
-extern uint16_t uart;
-uint8_t rec[4] = "test";
+ extern uint16_t uart;
  extern uint16_t tDelay;
+ extern char envoi;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -88,15 +88,21 @@ void RCC_IRQHandler(void)
 void EXTI15_10_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI15_10_IRQn 0 */
-  HAL_UART_Transmit(&huart2, rec, 10, 10);
   
   for(int i = 0; i < 65535 ; i++ ) ;
   if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13));
   {
-    if(tDelay == 50 ) 
-      tDelay = 1000;
+    /*if(tDelay == 1000 ) 
+      tDelay = 1;
     else
-      tDelay = 50;
+      tDelay = 1000;*/
+    
+    if (envoi == 0){
+      envoi = 1;
+    }
+    else{
+      envoi  = 0;
+    }
   }
   
   /* USER CODE END EXTI15_10_IRQn 0 */

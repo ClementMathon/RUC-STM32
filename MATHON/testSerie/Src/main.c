@@ -46,6 +46,7 @@ UART_HandleTypeDef huart2;
 /* Private variables ---------------------------------------------------------*/
 
 uint16_t tDelay = 50;
+char envoi = 0;
 
 /* USER CODE END PV */
 
@@ -86,8 +87,8 @@ int main(void)
   MX_USART2_UART_Init();
 
   /* USER CODE BEGIN 2 */
-  uint8_t bufftx[13] = "AT";
-  uint8_t rec[4] = "test";
+  //uint8_t bufftx[10] = "AT01234567";
+  uint8_t rec[2] = "AT"  ;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -98,13 +99,16 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
     
+    
+    
+    //HAL_UART_Receive(&huart4, rec, 1, 10)
+    
+    if (envoi >= 1){
+    HAL_UART_Transmit(&huart4, rec, 2, 10);
+    HAL_UART_Transmit(&huart2, rec, 2, 10);
     HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-    HAL_Delay(tDelay);
-    HAL_UART_Receive(&huart4, rec, 10, 10);
-    //HAL_UART_Transmit(&huart2, bufftx, 10, 100);
-    //HAL_UART_Transmit(&huart2, rec, 10, 10);
-    //HAL_UART_Transmit(&huart4, bufftx, 10, 100);
-
+    HAL_Delay(2000);
+    }
   }
   /* USER CODE END 3 */
 

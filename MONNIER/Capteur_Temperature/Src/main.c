@@ -53,9 +53,12 @@ __IO uint8_t Recevoir[8];
 uint8_t rec[5] = "test\n";
 
 float humidite=0;
+float humidite1=0;
 float humiditeMB=0;
 float humiditeLB=0;
 float temperature=0;
+int Thumidite=0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -106,7 +109,7 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
   HAL_I2C_Master_Transmit(&hi2c2,0xB8,(uint8_t*)Demande,3,2000);//Reveil du capteur par n'importe quelle trame
-  HAL_Delay(1000);
+  HAL_Delay(2);
   HAL_I2C_Master_Transmit(&hi2c2,0xB8,(uint8_t*)Demande,3,2000);//B8 pour la l'écriture
   
   
@@ -119,21 +122,32 @@ int main(void)
    /*//clignote la LED avec interruption
   HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_5);
   HAL_Delay(tDelay);*/
+   
   
   //éviter d'additionner plusieur case d'un tableau en meme temps sinon Warning[Pa082]
+  
   humiditeMB= Recevoir[2]*256;
   humiditeLB= Recevoir[3];
   humidite = humiditeMB + humiditeLB;
+  humidite=humidite/1;
+  temperature=Recevoir[5];
+  temperature=temperature/1;
   
-  humidite=humidite*256;
-  humidite1=humidite;
+  //Ci-dessous en commentaire sont des tests :
   
- // humidite1=Recevoir[3];
- // humidite=humidite+humidite1;
-  humidite=humidite/10;
-  temperature= (Recevoir[5])/10;
+  //humidite=humidite*256;
+ /* humidite=humidite*10;
+  Thumidite=(int)humidite;
+  humidite=(float)Thumidite;
+  humidite=humidite*0.01;*/
+ // humidite=(float)humidite;
+ // humidite=humidite/100;
   
- // HAL_Delay(1000);
+    
+  
+  
+  
+  HAL_Delay(1000);
   
   
   }
