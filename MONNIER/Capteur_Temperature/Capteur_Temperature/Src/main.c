@@ -33,29 +33,45 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32l4xx_hal.h"
-#include "string.h"
 
 /* USER CODE BEGIN Includes */
-
+uint16_t tDelay=250;
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
-UART_HandleTypeDef huart4;
+I2C_HandleTypeDef hi2c2;
+
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
+__IO uint8_t Demande[3]={0x03,0x00,0x04};
+__IO uint8_t Test[3]={0x00,0x00,0x00};
+__IO uint8_t Recevoir[8];
 
-uint16_t tDelay = 50;
-char envoi = 0;
 
+uint8_t rec[3] = "OK\n";
+
+
+float humidite=0;
+float humidite1=0;
+int humiditeMB=0;
+int humiditeLB=0;
+int humiditeTOTAL=0;
+float temperature=0;
+int Thumidite=0;
+
+//uint8_t temperatureUINT8=0;
+//uint8_t humiditeUINT8=0;
+
+char flag=0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 void Error_Handler(void);
 static void MX_GPIO_Init(void);
-static void MX_UART4_Init(void);
+static void MX_I2C2_Init(void);
 static void MX_USART2_UART_Init(void);
 
 /* USER CODE BEGIN PFP */
@@ -65,118 +81,13 @@ static void MX_USART2_UART_Init(void);
 
 /* USER CODE BEGIN 0 */
 
-float ReverseFloat( const float inFloat )
-{
-  float retVal;
-  char *floatToConvert = ( char* ) & inFloat;
-  char *returnFloat = ( char* ) & retVal;
-
-  // swap the bytes into a temporary buffer
-  returnFloat[0] = floatToConvert[3];
-  returnFloat[1] = floatToConvert[2];
-  returnFloat[2] = floatToConvert[1];
-  returnFloat[3] = floatToConvert[0];
-
-   return retVal;
-}
-
-int hex_to_int(char c)
-{
-  int first = c / 16 - 3;
-  int second = c % 16;
-  int result = first*10 + second;
-  if(result > 9) result--;
-  return result;
-}
-
-int hex_to_ascii(char c, char d)
-{
-  int high = hex_to_int(c) * 16;
-  int low = hex_to_int(d);
-  return high+low;
-}
-
-char* createTrame(float poids, float temp, float hygro)
-{
-  trame[0] = 'A';
-  trame[1] = 'T';
-  trame[2] = '$';
-  trame[3] = 'S';
-  trame[4] = 'F';
-  trame[5] = '=';
-  trame[6] = ' ';
-  trame[15] = ' ';
-  trame[24] = ' ';
-  trame[33] = '\n';
-  trame[34] = '\r';
-  
-  setsetPoids(trame, poids);
-  setsetTemperature(trame, temp);
-  setsetHygrometrie(trame, hygro);
-  
-  return(trame);
-}
-
-void sendTrame(char* trame)
-{
-  HAL_UART_Transmit(&huart4, (uint8_t*)trame, 35, 100);
-}
-
-void setPoids(char* trame, float poids)
-{
-  float pds = 0;
-  
-  pds = ReverseFloat(poids);
-  
-  trame[7] = '0';
-  trame[8] = '0';
-  trame[9] = '0';
-  trame[10] = '0';
-  trame[11] = 'e';
-  trame[12] = '5';
-  trame[13] = '4';
-  trame[14] = '2';
-}
-
-void setTemperature(char* trame, float temp)
-{
-  float toc = 0;
-  
-  toc = ReverseFloat(toc);
-  
-  trame[16] = '0';
-  trame[17] = '0';
-  trame[18] = '0';
-  trame[19] = '0';
-  trame[20] = '9';
-  trame[21] = '4';
-  trame[22] = '4';
-  trame[23] = '1';
-}
-
-void setHygrometrie(char* trame, float hygro)
-{
-  float hum = 0;
-  
-  hum = ReverseFloat(hum);
-  
-  trame[25] = '0';
-  trame[26] = '0';
-  trame[27] = '0';
-  trame[28] = '0';
-  trame[29] = '8';
-  trame[30] = '3';
-  trame[31] = '4';
-  trame[32] = '2';
-}
-
 /* USER CODE END 0 */
 
- int main(void)
+int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+  
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -189,24 +100,11 @@ void setHygrometrie(char* trame, float hygro)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_UART4_Init();
+  MX_I2C2_Init();
   MX_USART2_UART_Init();
 
   /* USER CODE BEGIN 2 */
   
-  //poids : 114.5 kg => 0x42e50000 => 0000e542
-  //temperature : 18.5 °c => 0x41940000 => 00009441
-  //hygro : 65.5 % => 0x42830000 => 00008342
-
-  float poids = 114.5 ;
-  float temp = 21.6 ;
-  float hygro = 37.9 ;
-  
-  //uint8_t commande[37] = "AT$SF= 0000e542 00009441 00008342\n\r" ;
-  
-  char commandeCat[37];
-  
-  //uint8_t recu[10];
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -217,29 +115,62 @@ void setHygrometrie(char* trame, float hygro)
 
   /* USER CODE BEGIN 3 */
     
+    if(flag>=1){
+     HAL_I2C_Master_Transmit(&hi2c2,0xB8,(uint8_t*)Demande,3,2000);//Reveil du capteur par n'importe quelle trame
+     HAL_Delay(2);
+     HAL_I2C_Master_Transmit(&hi2c2,0xB8,(uint8_t*)Demande,3,2000);//B8 pour la l'écriture
+     
     
-    
-    //HAL_UART_Receive(&huart4, rec, 1, 10)
-    
-    if (envoi >= 1){
-      
-      //poids  = ReverseFloat(poids);
-      
-      //sprintf(commandeCat,"AT$SF= %x %x %x \n\r",poids,temp,hygro);
-      
-      //uint8_t commande[37] = "AT$SF= 0000e542 00009441 00008342\n\r" ; 
+    //UART communication COM6 au PC affichage d'un "OK" après la transmission
 
-      
-      /*
-      HAL_UART_Transmit(&huart4, commande, 37, 10000);
-      HAL_UART_Receive(&huart4, recu, 10, 10);
-      HAL_UART_Transmit(&huart2, commande, 37, 100);
-      HAL_UART_Transmit(&huart2, recu, 10, 10);*/
-      HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-      envoi = 0;
-      //HAL_Delay(100);
-      //HAL_Delay(641200); //cette ligne represent le delay maximum afin de ne pas depasser le forfait
-    }
+     HAL_UART_Transmit(&huart2, rec, 3, 10);
+
+    //Reception des données venant du capteur de temperature et humidité
+     HAL_I2C_Master_Receive(&hi2c2,0xB9,(uint8_t*)Recevoir,8,2000); //B9 pour la lecture
+
+     /*//clignote la LED avec interruption
+    HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_5);
+    HAL_Delay(tDelay);*/
+     
+    
+    //éviter d'additionner plusieur case d'un tableau en meme temps sinon Warning[Pa082]
+    //conversion en decimal la valeure de l'humidite
+    humiditeMB= Recevoir[2]*256;
+    humiditeLB= Recevoir[3];
+    humidite = humiditeMB + humiditeLB;
+    humiditeTOTAL=humiditeMB + humiditeLB;
+    humidite=humidite/10;
+    
+    //conversion en decimal la valeure de la temperature
+    temperature=Recevoir[5];
+    temperature=temperature/10;
+    
+    
+    
+    flag=0;
+    
+   
+    //HAL_UART_Transmit(&huart2, humidite, 2, 10);
+    HAL_Delay(1000);
+   }
+  
+  //Ci-dessous en commentaire sont des tests :
+  
+  //humidite=humidite*256;
+ /* humidite=humidite*10;
+  Thumidite=(int)humidite;
+  humidite=(float)Thumidite;
+  humidite=humidite*0.01;*/
+ // humidite=(float)humidite;
+ // humidite=humidite/100;
+  
+    
+  
+  
+  
+ //HAL_Delay(1000);
+  
+  
   }
   /* USER CODE END 3 */
 
@@ -285,9 +216,9 @@ void SystemClock_Config(void)
     Error_Handler();
   }
 
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2|RCC_PERIPHCLK_UART4;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2|RCC_PERIPHCLK_I2C2;
   PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
-  PeriphClkInit.Uart4ClockSelection = RCC_UART4CLKSOURCE_PCLK1;
+  PeriphClkInit.I2c2ClockSelection = RCC_I2C2CLKSOURCE_PCLK1;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
@@ -312,21 +243,27 @@ void SystemClock_Config(void)
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
-/* UART4 init function */
-static void MX_UART4_Init(void)
+/* I2C2 init function */
+static void MX_I2C2_Init(void)
 {
 
-  huart4.Instance = UART4;
-  huart4.Init.BaudRate = 9600;
-  huart4.Init.WordLength = UART_WORDLENGTH_8B;
-  huart4.Init.StopBits = UART_STOPBITS_1;
-  huart4.Init.Parity = UART_PARITY_NONE;
-  huart4.Init.Mode = UART_MODE_TX_RX;
-  huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart4.Init.OverSampling = UART_OVERSAMPLING_16;
-  huart4.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  if (HAL_UART_Init(&huart4) != HAL_OK)
+  hi2c2.Instance = I2C2;
+  hi2c2.Init.Timing = 0x10909CEC;
+  hi2c2.Init.OwnAddress1 = 0;
+  hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c2.Init.OwnAddress2 = 0;
+  hi2c2.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
+  hi2c2.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c2.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+    /**Configure Analogue filter 
+    */
+  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c2, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
   {
     Error_Handler();
   }
@@ -370,15 +307,16 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : B1_Pin */
-  GPIO_InitStruct.Pin = B1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  /*Configure GPIO pin : PC13 */
+  GPIO_InitStruct.Pin = GPIO_PIN_13;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pin : LD2_Pin */
   GPIO_InitStruct.Pin = LD2_Pin;

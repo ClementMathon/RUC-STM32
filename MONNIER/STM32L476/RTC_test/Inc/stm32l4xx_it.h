@@ -1,7 +1,7 @@
 /**
   ******************************************************************************
-  * File Name          : main.h
-  * Description        : This file contains the common defines of the application
+  * @file    stm32l4xx_it.h
+  * @brief   This file contains the headers of the interrupt handlers.
   ******************************************************************************
   *
   * COPYRIGHT(c) 2017 STMicroelectronics
@@ -30,39 +30,29 @@
   *
   ******************************************************************************
   */
+
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MAIN_H
-#define __MAIN_H
-  /* Includes ------------------------------------------------------------------*/
+#ifndef __STM32L4xx_IT_H
+#define __STM32L4xx_IT_H
 
-/* USER CODE BEGIN Includes */
+#ifdef __cplusplus
+ extern "C" {
+#endif 
 
-/* USER CODE END Includes */
+/* Includes ------------------------------------------------------------------*/
+/* Exported types ------------------------------------------------------------*/
+/* Exported constants --------------------------------------------------------*/
+/* Exported macro ------------------------------------------------------------*/
+/* Exported functions ------------------------------------------------------- */
 
-/* Private define ------------------------------------------------------------*/
+void SysTick_Handler(void);
+void RTC_WKUP_IRQHandler(void);
+void RTC_Alarm_IRQHandler(void);
 
-#define B1_Pin GPIO_PIN_13
-#define B1_GPIO_Port GPIOC
-#define USART_TX_Pin GPIO_PIN_2
-#define USART_TX_GPIO_Port GPIOA
-#define USART_RX_Pin GPIO_PIN_3
-#define USART_RX_GPIO_Port GPIOA
-#define LD2_Pin GPIO_PIN_5
-#define LD2_GPIO_Port GPIOA
-#define TCK_Pin GPIO_PIN_14
-#define TCK_GPIO_Port GPIOA
+#ifdef __cplusplus
+}
+#endif
 
-/* USER CODE BEGIN Private defines */
+#endif /* __STM32L4xx_IT_H */
 
-/* USER CODE END Private defines */
-
-/**
-  * @}
-  */ 
-
-/**
-  * @}
-*/ 
-
-#endif /* __MAIN_H */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

@@ -36,12 +36,11 @@
 #include "stm32l4xx_it.h"
 
 /* USER CODE BEGIN 0 */
- extern uint16_t uart;
- extern uint16_t tDelay;
- extern char envoi;
+
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern RTC_HandleTypeDef hrtc;
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
@@ -70,41 +69,31 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-* @brief This function handles RCC global interrupt.
+* @brief This function handles RTC wake-up interrupt through EXTI line 20.
 */
-void RCC_IRQHandler(void)
+void RTC_WKUP_IRQHandler(void)
 {
-  /* USER CODE BEGIN RCC_IRQn 0 */
+  /* USER CODE BEGIN RTC_WKUP_IRQn 0 */
 
-  /* USER CODE END RCC_IRQn 0 */
-  /* USER CODE BEGIN RCC_IRQn 1 */
+  /* USER CODE END RTC_WKUP_IRQn 0 */
+  HAL_RTCEx_WakeUpTimerIRQHandler(&hrtc);
+  /* USER CODE BEGIN RTC_WKUP_IRQn 1 */
 
-  /* USER CODE END RCC_IRQn 1 */
+  /* USER CODE END RTC_WKUP_IRQn 1 */
 }
 
 /**
-* @brief This function handles EXTI line[15:10] interrupts.
+* @brief This function handles RTC alarm interrupt through EXTI line 18.
 */
-void EXTI15_10_IRQHandler(void)
+void RTC_Alarm_IRQHandler(void)
 {
-  /* USER CODE BEGIN EXTI15_10_IRQn 0 */
-  
-  for(int i = 0; i < 65535 ; i++ ) ;
-  if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13));
-  {
-    if (envoi == 0){
-      envoi = 1;
-    }
-    else{
-      envoi  = 0;
-    }
-  }
-  
-  /* USER CODE END EXTI15_10_IRQn 0 */
-  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
-  /* USER CODE BEGIN EXTI15_10_IRQn 1 */
+  /* USER CODE BEGIN RTC_Alarm_IRQn 0 */
 
-  /* USER CODE END EXTI15_10_IRQn 1 */
+  /* USER CODE END RTC_Alarm_IRQn 0 */
+  HAL_RTC_AlarmIRQHandler(&hrtc);
+  /* USER CODE BEGIN RTC_Alarm_IRQn 1 */
+
+  /* USER CODE END RTC_Alarm_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

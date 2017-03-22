@@ -33,21 +33,16 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32l4xx_hal.h"
-#include "string.h"
 
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
-UART_HandleTypeDef huart4;
-UART_HandleTypeDef huart2;
+RTC_HandleTypeDef hrtc;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-
-uint16_t tDelay = 50;
-char envoi = 0;
 
 /* USER CODE END PV */
 
@@ -55,8 +50,7 @@ char envoi = 0;
 void SystemClock_Config(void);
 void Error_Handler(void);
 static void MX_GPIO_Init(void);
-static void MX_UART4_Init(void);
-static void MX_USART2_UART_Init(void);
+static void MX_RTC_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -64,115 +58,19 @@ static void MX_USART2_UART_Init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+uint8_t Hour;
+uint8_t Min;
+uint8_t Sec;
 
-float ReverseFloat( const float inFloat )
-{
-  float retVal;
-  char *floatToConvert = ( char* ) & inFloat;
-  char *returnFloat = ( char* ) & retVal;
+uint8_t counter=0;
 
-  // swap the bytes into a temporary buffer
-  returnFloat[0] = floatToConvert[3];
-  returnFloat[1] = floatToConvert[2];
-  returnFloat[2] = floatToConvert[1];
-  returnFloat[3] = floatToConvert[0];
-
-   return retVal;
-}
-
-int hex_to_int(char c)
-{
-  int first = c / 16 - 3;
-  int second = c % 16;
-  int result = first*10 + second;
-  if(result > 9) result--;
-  return result;
-}
-
-int hex_to_ascii(char c, char d)
-{
-  int high = hex_to_int(c) * 16;
-  int low = hex_to_int(d);
-  return high+low;
-}
-
-char* createTrame(float poids, float temp, float hygro)
-{
-  trame[0] = 'A';
-  trame[1] = 'T';
-  trame[2] = '$';
-  trame[3] = 'S';
-  trame[4] = 'F';
-  trame[5] = '=';
-  trame[6] = ' ';
-  trame[15] = ' ';
-  trame[24] = ' ';
-  trame[33] = '\n';
-  trame[34] = '\r';
+void HAL_RTC_AlarmAEventCallback (RTC_HandleTypeDef *hrtc){
   
-  setsetPoids(trame, poids);
-  setsetTemperature(trame, temp);
-  setsetHygrometrie(trame, hygro);
-  
-  return(trame);
+  counter += 100;
 }
-
-void sendTrame(char* trame)
-{
-  HAL_UART_Transmit(&huart4, (uint8_t*)trame, 35, 100);
-}
-
-void setPoids(char* trame, float poids)
-{
-  float pds = 0;
-  
-  pds = ReverseFloat(poids);
-  
-  trame[7] = '0';
-  trame[8] = '0';
-  trame[9] = '0';
-  trame[10] = '0';
-  trame[11] = 'e';
-  trame[12] = '5';
-  trame[13] = '4';
-  trame[14] = '2';
-}
-
-void setTemperature(char* trame, float temp)
-{
-  float toc = 0;
-  
-  toc = ReverseFloat(toc);
-  
-  trame[16] = '0';
-  trame[17] = '0';
-  trame[18] = '0';
-  trame[19] = '0';
-  trame[20] = '9';
-  trame[21] = '4';
-  trame[22] = '4';
-  trame[23] = '1';
-}
-
-void setHygrometrie(char* trame, float hygro)
-{
-  float hum = 0;
-  
-  hum = ReverseFloat(hum);
-  
-  trame[25] = '0';
-  trame[26] = '0';
-  trame[27] = '0';
-  trame[28] = '0';
-  trame[29] = '8';
-  trame[30] = '3';
-  trame[31] = '4';
-  trame[32] = '2';
-}
-
 /* USER CODE END 0 */
 
- int main(void)
+int main(void)
 {
 
   /* USER CODE BEGIN 1 */
@@ -189,24 +87,32 @@ void setHygrometrie(char* trame, float hygro)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_UART4_Init();
-  MX_USART2_UART_Init();
+  MX_RTC_Init();
 
   /* USER CODE BEGIN 2 */
+  RTC_TimeTypeDef RTC_Time;
+  RTC_AlarmTypeDef RTC_Alarm_Time;
+  RTC_DateTypeDef RTC Date;
   
-  //poids : 114.5 kg => 0x42e50000 => 0000e542
-  //temperature : 18.5 °c => 0x41940000 => 00009441
-  //hygro : 65.5 % => 0x42830000 => 00008342
+  HAL_RTC_GetTime (&hrtc, &RTC_Time, RTC_FORMAT_BCD);
+  Hour = RTC_Time.Hours;
+  Min = RTC_Time.Minutes;
+  Sec = RTC_Time.Seconds;
+  
+  RTC_Time.Hours=0x05;
+  RTC_Time.Minutes=0x05;
+  RTC_Time.Seconds=0x00;
+  
+  RTC_Alarm_Time.Alarm=1;
+  RTC_Alarm_Time.AlarmTime.Hours = 0x05;
+  RTC_Alarm_Time.AlarmTime.Minutes = 0x05;
+  RTC_Alarm_Time.AlarmTime.Seconds = 0x30;
+  
+  HAL_Delay(5000);
+  HAL_RTC_SetTime (&hrtc, &RTC_Time, RTC_FORMAT_BCD);
+  HAL_RTC_SetAlarm_IT(&hrtc, &RTC_Alarm_Time, RTC_FORMAT_BCD);
 
-  float poids = 114.5 ;
-  float temp = 21.6 ;
-  float hygro = 37.9 ;
-  
-  //uint8_t commande[37] = "AT$SF= 0000e542 00009441 00008342\n\r" ;
-  
-  char commandeCat[37];
-  
-  //uint8_t recu[10];
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -214,32 +120,12 @@ void setHygrometrie(char* trame, float hygro)
   while (1)
   {
   /* USER CODE END WHILE */
-
+  HAL_RTC_GetTime (&hrtc, &RTC_Time, RTC_FORMAT_BCD);
+  Hour = RTC_Time.Hours;
+  Min = RTC_Time.Minutes;
+  Sec = RTC_Time.Seconds;
   /* USER CODE BEGIN 3 */
-    
-    
-    
-    //HAL_UART_Receive(&huart4, rec, 1, 10)
-    
-    if (envoi >= 1){
-      
-      //poids  = ReverseFloat(poids);
-      
-      //sprintf(commandeCat,"AT$SF= %x %x %x \n\r",poids,temp,hygro);
-      
-      //uint8_t commande[37] = "AT$SF= 0000e542 00009441 00008342\n\r" ; 
 
-      
-      /*
-      HAL_UART_Transmit(&huart4, commande, 37, 10000);
-      HAL_UART_Receive(&huart4, recu, 10, 10);
-      HAL_UART_Transmit(&huart2, commande, 37, 100);
-      HAL_UART_Transmit(&huart2, recu, 10, 10);*/
-      HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-      envoi = 0;
-      //HAL_Delay(100);
-      //HAL_Delay(641200); //cette ligne represent le delay maximum afin de ne pas depasser le forfait
-    }
   }
   /* USER CODE END 3 */
 
@@ -256,9 +142,10 @@ void SystemClock_Config(void)
 
     /**Initializes the CPU, AHB and APB busses clocks 
     */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = 16;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 1;
@@ -285,9 +172,8 @@ void SystemClock_Config(void)
     Error_Handler();
   }
 
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2|RCC_PERIPHCLK_UART4;
-  PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
-  PeriphClkInit.Uart4ClockSelection = RCC_UART4CLKSOURCE_PCLK1;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_RTC;
+  PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
@@ -312,42 +198,72 @@ void SystemClock_Config(void)
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
-/* UART4 init function */
-static void MX_UART4_Init(void)
+/* RTC init function */
+static void MX_RTC_Init(void)
 {
 
-  huart4.Instance = UART4;
-  huart4.Init.BaudRate = 9600;
-  huart4.Init.WordLength = UART_WORDLENGTH_8B;
-  huart4.Init.StopBits = UART_STOPBITS_1;
-  huart4.Init.Parity = UART_PARITY_NONE;
-  huart4.Init.Mode = UART_MODE_TX_RX;
-  huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart4.Init.OverSampling = UART_OVERSAMPLING_16;
-  huart4.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  if (HAL_UART_Init(&huart4) != HAL_OK)
+  RTC_TimeTypeDef sTime;
+  RTC_DateTypeDef sDate;
+  RTC_AlarmTypeDef sAlarm;
+
+    /**Initialize RTC Only 
+    */
+  hrtc.Instance = RTC;
+  hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
+  hrtc.Init.AsynchPrediv = 127;
+  hrtc.Init.SynchPrediv = 255;
+  hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
+  hrtc.Init.OutPutRemap = RTC_OUTPUT_REMAP_NONE;
+  hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
+  hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
+  if (HAL_RTC_Init(&hrtc) != HAL_OK)
   {
     Error_Handler();
   }
 
-}
+    /**Initialize RTC and set the Time and Date 
+    */
+  sTime.Hours = 0x10;
+  sTime.Minutes = 0x15;
+  sTime.Seconds = 0x15;
+  sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+  sTime.StoreOperation = RTC_STOREOPERATION_RESET;
+  if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
-/* USART2 init function */
-static void MX_USART2_UART_Init(void)
-{
+  sDate.WeekDay = RTC_WEEKDAY_WEDNESDAY;
+  sDate.Month = RTC_MONTH_MARCH;
+  sDate.Date = 0x22;
+  sDate.Year = 0x17;
 
-  huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
-  huart2.Init.WordLength = UART_WORDLENGTH_8B;
-  huart2.Init.StopBits = UART_STOPBITS_1;
-  huart2.Init.Parity = UART_PARITY_NONE;
-  huart2.Init.Mode = UART_MODE_TX_RX;
-  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
-  huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  if (HAL_UART_Init(&huart2) != HAL_OK)
+  if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BCD) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+    /**Enable the Alarm A 
+    */
+  sAlarm.AlarmTime.Hours = 0x0;
+  sAlarm.AlarmTime.Minutes = 0x0;
+  sAlarm.AlarmTime.Seconds = 0x10;
+  sAlarm.AlarmTime.SubSeconds = 0x0;
+  sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+  sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
+  sAlarm.AlarmMask = RTC_ALARMMASK_NONE;
+  sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
+  sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
+  sAlarm.AlarmDateWeekDay = 0x1;
+  sAlarm.Alarm = RTC_ALARM_A;
+  if (HAL_RTC_SetAlarm_IT(&hrtc, &sAlarm, RTC_FORMAT_BCD) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+    /**Enable the WakeUp 
+    */
+  if (HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 0, RTC_WAKEUPCLOCK_RTCCLK_DIV16) != HAL_OK)
   {
     Error_Handler();
   }
@@ -360,6 +276,8 @@ static void MX_USART2_UART_Init(void)
         * Output
         * EVENT_OUT
         * EXTI
+     PA2   ------> USART2_TX
+     PA3   ------> USART2_RX
 */
 static void MX_GPIO_Init(void)
 {
@@ -370,6 +288,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
@@ -380,16 +299,20 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : USART_TX_Pin USART_RX_Pin */
+  GPIO_InitStruct.Pin = USART_TX_Pin|USART_RX_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
   /*Configure GPIO pin : LD2_Pin */
   GPIO_InitStruct.Pin = LD2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
-
-  /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 
