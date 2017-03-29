@@ -1,0 +1,8 @@
+# depslib dependency file v1.0
+1490790108 source:c:\users\mathon\dropbox\programmation\langage_c\floattostring\floattostring\main.c
+	<stdio.h>
+	<stdlib.h>
+	<stdint-gcc.h>
+	<math.h>
+	<string.h>
+

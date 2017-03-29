@@ -33,7 +33,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32l4xx_hal.h"
-#include "string.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -96,7 +95,7 @@ int hex_to_ascii(char c, char d)
   return high+low;
 }
 
-char* createTrame(float poids, float temp, float hygro)
+char* createTrame(char* trame, float poids, float temp, float hygro)
 {
   trame[0] = 'A';
   trame[1] = 'T';
@@ -172,7 +171,7 @@ void setHygrometrie(char* trame, float hygro)
 
 /* USER CODE END 0 */
 
- int main(void)
+int main(void)
 {
 
   /* USER CODE BEGIN 1 */
@@ -195,16 +194,17 @@ void setHygrometrie(char* trame, float hygro)
   /* USER CODE BEGIN 2 */
   
   //poids : 114.5 kg => 0x42e50000 => 0000e542
+  //        268.9 kg => 0x43867333 => 33738643
   //temperature : 18.5 °c => 0x41940000 => 00009441
   //hygro : 65.5 % => 0x42830000 => 00008342
 
-  float poids = 114.5 ;
-  float temp = 21.6 ;
-  float hygro = 37.9 ;
+  //float poids = 114.5 ;
+  //float temp = 21.6 ;
+  //float hygro = 37.9 ;
   
-  //uint8_t commande[37] = "AT$SF= 0000e542 00009441 00008342\n\r" ;
+  uint8_t commande[37] = "AT$SF= 33738643 00009441 00008342\n\r" ;
   
-  char commandeCat[37];
+  //char commandeCat[37];
   
   //uint8_t recu[10];
   /* USER CODE END 2 */
@@ -230,8 +230,9 @@ void setHygrometrie(char* trame, float hygro)
       //uint8_t commande[37] = "AT$SF= 0000e542 00009441 00008342\n\r" ; 
 
       
-      /*
+      
       HAL_UART_Transmit(&huart4, commande, 37, 10000);
+      /*
       HAL_UART_Receive(&huart4, recu, 10, 10);
       HAL_UART_Transmit(&huart2, commande, 37, 100);
       HAL_UART_Transmit(&huart2, recu, 10, 10);*/

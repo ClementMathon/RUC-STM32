@@ -54,11 +54,11 @@ uint8_t rec[3] = "OK\n";
 
 
 float humidite=0;
-float humidite1=0;
+float humiditeTOTAL=0;
 int humiditeMB=0;
 int humiditeLB=0;
-int humiditeTOTAL=0;
 float temperature=0;
+float temperatureTOTAL=0;
 int Thumidite=0;
 
 //uint8_t temperatureUINT8=0;
@@ -80,6 +80,43 @@ static void MX_USART2_UART_Init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+float getHumidite(){
+  
+  //conversion en decimal la valeure de l'humidite
+    humiditeMB= Recevoir[2]*256;
+    humiditeLB= Recevoir[3];
+    humidite = (int)(humiditeMB + humiditeLB);
+   
+    humidite=(float)humidite/10;
+    return humidite;
+}
+
+float getTemperature(){
+    int temp=0;
+    float tempTOTAL;
+    
+    temp=Recevoir[5];
+    tempTOTAL=(float)temp/10;
+    
+    return tempTOTAL;
+  
+}
+void connexionRecuperationCapteur(){
+  
+   HAL_I2C_Master_Transmit(&hi2c2,0xB8,(uint8_t*)Demande,3,2000);//Reveil du capteur par n'importe quelle trame
+   HAL_Delay(2);
+   HAL_I2C_Master_Transmit(&hi2c2,0xB8,(uint8_t*)Demande,3,2000);//B8 pour la l'écriture
+   
+  
+  //UART communication COM6 au PC affichage d'un "OK" après la transmission
+
+   HAL_UART_Transmit(&huart2, rec, 3, 10);
+
+  //Reception des données venant du capteur de temperature et humidité
+   HAL_I2C_Master_Receive(&hi2c2,0xB9,(uint8_t*)Recevoir,8,2000); //B9 pour la lecture
+   
+  
+}
 
 /* USER CODE END 0 */
 
@@ -115,66 +152,46 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
     
-    if(flag>=1){
-     HAL_I2C_Master_Transmit(&hi2c2,0xB8,(uint8_t*)Demande,3,2000);//Reveil du capteur par n'importe quelle trame
-     HAL_Delay(2);
-     HAL_I2C_Master_Transmit(&hi2c2,0xB8,(uint8_t*)Demande,3,2000);//B8 pour la l'écriture
-     
+    HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON,PWR_SLEEPENTRY_WFI);
+                           
     
-    //UART communication COM6 au PC affichage d'un "OK" après la transmission
+    //ne fait rien tant qu'on n'a pas appuyé sur le bouton
+    if(flag>=1){
+      /* HAL_I2C_Master_Transmit(&hi2c2,0xB8,(uint8_t*)Demande,3,2000);//Reveil du capteur par n'importe quelle trame
+         HAL_Delay(2);
+         HAL_I2C_Master_Transmit(&hi2c2,0xB8,(uint8_t*)Demande,3,2000);//B8 pour la l'écriture
+         
+        
+        //UART communication COM6 au PC affichage d'un "OK" après la transmission
 
-     HAL_UART_Transmit(&huart2, rec, 3, 10);
+         HAL_UART_Transmit(&huart2, rec, 3, 10);
 
-    //Reception des données venant du capteur de temperature et humidité
-     HAL_I2C_Master_Receive(&hi2c2,0xB9,(uint8_t*)Recevoir,8,2000); //B9 pour la lecture
-
+        //Reception des données venant du capteur de temperature et humidité
+         HAL_I2C_Master_Receive(&hi2c2,0xB9,(uint8_t*)Recevoir,8,2000); //B9 pour la lecture
+     */
+      
+     connexionRecuperationCapteur();
+     //appele de la fonction de conversion pour l'humidité
+     humiditeTOTAL=getHumidite();
+     temperatureTOTAL=getTemperature(); 
+     
+     
+     
      /*//clignote la LED avec interruption
     HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_5);
     HAL_Delay(tDelay);*/
-     
-    
-    //éviter d'additionner plusieur case d'un tableau en meme temps sinon Warning[Pa082]
-    //conversion en decimal la valeure de l'humidite
-    humiditeMB= Recevoir[2]*256;
-    humiditeLB= Recevoir[3];
-    humidite = humiditeMB + humiditeLB;
-    humiditeTOTAL=humiditeMB + humiditeLB;
-    humidite=humidite/10;
-    
-    //conversion en decimal la valeure de la temperature
-    temperature=Recevoir[5];
-    temperature=temperature/10;
-    
-    
-    
     flag=0;
     
-   
     //HAL_UART_Transmit(&huart2, humidite, 2, 10);
+    
+    
     HAL_Delay(1000);
    }
-  
-  //Ci-dessous en commentaire sont des tests :
-  
-  //humidite=humidite*256;
- /* humidite=humidite*10;
-  Thumidite=(int)humidite;
-  humidite=(float)Thumidite;
-  humidite=humidite*0.01;*/
- // humidite=(float)humidite;
- // humidite=humidite/100;
-  
-    
-  
-  
-  
- //HAL_Delay(1000);
-  
-  
   }
   /* USER CODE END 3 */
 
 }
+
 
 /** System Clock Configuration
 */

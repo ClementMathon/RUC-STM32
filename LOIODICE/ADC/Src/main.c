@@ -32,7 +32,7 @@
   */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "stm32l4xx_hal.h"
+#include "acquisitionDonnees.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -44,7 +44,9 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-  uint16_t adcValeur = 0; // variable acValeur entier non signé 
+
+   float poids; //variable qui récupere le poid en kg
+   
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -60,7 +62,39 @@ static void MX_USART2_UART_Init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-    
+/*float calculerPoids(){
+  
+    adcValeur=0;     
+    tension=0; 
+    poids=0.0;
+    MoyennePoids =0.0;
+    //printf("valeur de %f", MoyennePoids);
+    sprintf(cool,"la variable cool a pour valeur : %f ", MoyennePoids); 
+    HAL_UART_Transmit(&huart2, cool, strlen(cool), 100);
+       
+    for(i=0;i<10;i++){
+      HAL_ADC_Start(&hadc1);
+      HAL_ADC_PollForConversion(&hadc1,100);
+      adcValeur= HAL_ADC_GetValue(&hadc1);
+      tabADC[i] = adcValeur;
+      //tension=(adcValeur*2265)/3308;// pour 3.3v
+      //tension=(adcValeur*2265)/4095; // pour 5v
+      tension=(adcValeur*0.0012207031);// le plus proche
+    //  tension=(adcValeur*0.00087890625);
+      //tension=(adcValeur*0.0012207031)/4095;
+     //poids = ((0.120882943620134*tension)+3.07870233495081);
+     // poids = ((0.1186*tension)+3.079);
+     // poids = ((0.120882943620134*tension)+3.07870233495081);
+      poids = ((tension*100)/1.450191968);
+      tabPoids[i] = poids;
+      //HAL_Delay(1000);
+      MoyennePoids = MoyennePoids + tabPoids[i];
+    }
+      MoyennePoids = (MoyennePoids/10);
+      
+      
+      return (MoyennePoids);
+}*/
 /* USER CODE END 0 */
 
 int main(void)
@@ -92,14 +126,10 @@ int main(void)
   while (1)
   {
   /* USER CODE END WHILE */
-
+     
+      poids = getPoids();
   /* USER CODE BEGIN 3 */
-    HAL_ADC_Start(&hadc1);
-    HAL_ADC_PollForConversion(&hadc1,100);
-    adcValeur= HAL_ADC_GetValue(&hadc1);
-    // adcValeur=(adcValeur*1000)/1220;
-    // printf("valeur de %d", adcValeur);
-    HAL_Delay(1000);
+    
   }
   /* USER CODE END 3 */
 
