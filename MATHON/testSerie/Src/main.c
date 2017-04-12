@@ -33,6 +33,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32l4xx_hal.h"
+#include <string.h>
 
 /* USER CODE BEGIN Includes */
 
@@ -79,95 +80,23 @@ float ReverseFloat( const float inFloat )
    return retVal;
 }
 
-int hex_to_int(char c)
+unsigned floatToBits(float x)
 {
-  int first = c / 16 - 3;
-  int second = c % 16;
-  int result = first*10 + second;
-  if(result > 9) result--;
-  return result;
+    unsigned y;
+    memcpy(&y, &x, 4);
+    return y;
 }
 
-int hex_to_ascii(char c, char d)
-{
-  int high = hex_to_int(c) * 16;
-  int low = hex_to_int(d);
-  return high+low;
-}
 
-char* createTrame(char* trame, float poids, float temp, float hygro)
-{
-  trame[0] = 'A';
-  trame[1] = 'T';
-  trame[2] = '$';
-  trame[3] = 'S';
-  trame[4] = 'F';
-  trame[5] = '=';
-  trame[6] = ' ';
-  trame[15] = ' ';
-  trame[24] = ' ';
-  trame[33] = '\n';
-  trame[34] = '\r';
+void sendData(float poids, float temp, float hygro)
+{  
+  /*unsigned */char trame[35];
   
-  setsetPoids(trame, poids);
-  setsetTemperature(trame, temp);
-  setsetHygrometrie(trame, hygro);
+  sprintf(trame, "AT$SF= %x %x %x \n", floatToBits(ReverseFloat(poids)), floatToBits(ReverseFloat(temp)), floatToBits(ReverseFloat(hygro)));
   
-  return(trame);
-}
-
-void sendTrame(char* trame)
-{
   HAL_UART_Transmit(&huart4, (uint8_t*)trame, 35, 100);
 }
 
-void setPoids(char* trame, float poids)
-{
-  float pds = 0;
-  
-  pds = ReverseFloat(poids);
-  
-  trame[7] = '0';
-  trame[8] = '0';
-  trame[9] = '0';
-  trame[10] = '0';
-  trame[11] = 'e';
-  trame[12] = '5';
-  trame[13] = '4';
-  trame[14] = '2';
-}
-
-void setTemperature(char* trame, float temp)
-{
-  float toc = 0;
-  
-  toc = ReverseFloat(toc);
-  
-  trame[16] = '0';
-  trame[17] = '0';
-  trame[18] = '0';
-  trame[19] = '0';
-  trame[20] = '9';
-  trame[21] = '4';
-  trame[22] = '4';
-  trame[23] = '1';
-}
-
-void setHygrometrie(char* trame, float hygro)
-{
-  float hum = 0;
-  
-  hum = ReverseFloat(hum);
-  
-  trame[25] = '0';
-  trame[26] = '0';
-  trame[27] = '0';
-  trame[28] = '0';
-  trame[29] = '8';
-  trame[30] = '3';
-  trame[31] = '4';
-  trame[32] = '2';
-}
 
 /* USER CODE END 0 */
 
@@ -202,7 +131,6 @@ int main(void)
   //float temp = 21.6 ;
   //float hygro = 37.9 ;
   
-  uint8_t commande[37] = "AT$SF= 33738643 00009441 00008342\n\r" ;
   
   //char commandeCat[37];
   
@@ -223,20 +151,14 @@ int main(void)
     
     if (envoi >= 1){
       
-      //poids  = ReverseFloat(poids);
-      
-      //sprintf(commandeCat,"AT$SF= %x %x %x \n\r",poids,temp,hygro);
-      
-      //uint8_t commande[37] = "AT$SF= 0000e542 00009441 00008342\n\r" ; 
+      //exemple commande : uint8_t commande[37] = "AT$SF= 0000e542 00009441 00008342\n\r" ; 
 
       
       
-      HAL_UART_Transmit(&huart4, commande, 37, 10000);
-      /*
-      HAL_UART_Receive(&huart4, recu, 10, 10);
-      HAL_UART_Transmit(&huart2, commande, 37, 100);
-      HAL_UART_Transmit(&huart2, recu, 10, 10);*/
+      //ex transmit : HAL_UART_Transmit(&huart4, commande, 37, 10000);
+      //ex recieve : HAL_UART_Receive(&huart4, recu, 10, 10);
       HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+      sendData(14.2,38,325.9);
       envoi = 0;
       //HAL_Delay(100);
       //HAL_Delay(641200); //cette ligne represent le delay maximum afin de ne pas depasser le forfait
