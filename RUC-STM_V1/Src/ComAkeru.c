@@ -1,5 +1,23 @@
-#include "acquisitionDonnees.h"
+/*
+* filename : acquisitionDonnees.h
+* author : MATHON Clement
+* description : These fonctions deal with the back-end part of this project.
+*               It incorporates with the Sigox modem breakout TD1208. But could
+*               be able to fit with others modems.
+*/
 
+#include "acquisitionDonnees.h"
+/*
+* function name : ReverseFloat
+* author : MATHON Clement
+* description : this function switchs a float between big and little endian 
+*               and vice versa
+* parameters : 
+*   float inFloat : it's your float you want to transform.
+* 
+* retruns : 
+*   float : inFloat transformed in big or little endian.
+*/
 float ReverseFloat( const float inFloat )
 {
   float retVal;
@@ -15,6 +33,18 @@ float ReverseFloat( const float inFloat )
    return retVal;
 }
 
+/*
+* function name : floatToBits
+* author : MATHON Clement
+* description : this function transforms a float into a string of hexadecimal
+*               symbols. 
+* parameters : 
+*   float x : it's your float you want to transform.
+* 
+* retruns : 
+*   unsigned y : it's a pointer to the string corresponding to the float.
+*/
+
 unsigned floatToBits(float x)
 {
     unsigned y;
@@ -22,10 +52,22 @@ unsigned floatToBits(float x)
     return y;
 }
 
+/*
+* function name : sendData
+* author : MATHON Clement
+* description : this function creates and sends a frame to the back-end device.
+* parameters : 
+*   float poids : it's the real weight in kg
+*   float temp : it's the real temperature in °C
+*   float hygro : it's the real humidity level in %
+* 
+* retruns : 
+*   nothing
+*/
 
 void sendData(float poids, float temp, float hygro)
 {  
-  /*unsigned */char trame[35];
+  char trame[35];
   
   sprintf(trame, "AT$SF= %x %x %x \r\n", floatToBits(ReverseFloat(poids)), floatToBits(ReverseFloat(temp)), floatToBits(ReverseFloat(hygro)));
   
