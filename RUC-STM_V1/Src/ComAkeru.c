@@ -42,7 +42,7 @@ float ReverseFloat( const float inFloat )
 *   float x : it's your float you want to transform.
 * 
 * retruns : 
-*   unsigned y : it's a pointer to the string corresponding to the float.
+*   unsigned int y : it's a pointer to the string corresponding to the float.
 */
 
 unsigned floatToBits(float x)
