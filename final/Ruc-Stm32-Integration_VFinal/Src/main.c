@@ -40,23 +40,21 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
-
 I2C_HandleTypeDef hi2c2;
-
 UART_HandleTypeDef huart4;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-  // Partie Jacques Monnier
   __IO uint8_t demande[3]={0x03,0x00,0x04}; // Buffer pour la requete I2C
-  __IO uint8_t recevoir[8]; // Buffer pour la reponse I2C
-  float humidite=0.0;
-  float temperature=0.0;
+  __IO uint8_t recevoir[8];                 // Buffer pour la reponse I2C
   
-  char flag=0; // Gere l'interruption au bouton (push button blue)
+  float humidite=0.0;           // recois la valeur de la fonction getHumidite
+  float temperature=0.0;        // recois la valeur de la fonction getTemperature
+  float poids =0.0;             // recois la valeur de la fonction getPoids
+  char flag=0;                  // Gere l'interruption au bouton (push button blue)
   
-  float poids =0.0; // recois la valeur de la fonction getPoids
+ 
   
 /* USER CODE END PV */
 
@@ -107,30 +105,33 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
-  {
+  {// Debut boucle de traitement principale
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-    // flag passe à 1 lors d'un appui sur le bouton poussoir 
-    // flag passe a 0 en fin de traitement
-    // flag est gere par la routine d'interruption du user button (bouton bleu)
+    /* 
+    * flag passe à 1 lors d'un appui sur le bouton poussoir 
+    * flag passe a 0 en fin de traitement
+    * flag est gere par la routine d'interruption du user button (bouton bleu)
+    * voir stm32l4xx_it.c pour la routine d'inter
+    */
     if (flag >= 1){ 
       HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-      //ordre data : poids, temp, hygro
-      poids= getPoids(); 
-      connexionRecuperationCapteur(); 
-      temperature = getTemperature()+0.0001;
-      humidite = getHumidite()+0.0001;
-      //humidite=56.2;
-      sendData(poids,temperature,humidite); // envoie de la trame avec les valeurs recupere
+      
+      poids= getPoids();                        // Recuperation de la valeur de poids
+      connexionRecuperationCapteur();           // Connection au capteur de température et d'humidité
+      temperature = getTemperature();           // Recuperation de la valeur de temperature
+      humidite = getHumidite();                 // Recuperation de la valeur d'humidite
+      sendData(poids,temperature,humidite);     // Envoie de la trame avec les valeurs recupere (ordre data : poids, temp, hygro)
+      HAL_Delay(100);                           // Delai anti-rebond pour le push button                      
       flag = 0; // fin traitement
-      HAL_Delay(10);
-   }
-    
-  }
+      
+   }// Fin Condition 
+     
+  }// Fin boucle de traitement principale
   /* USER CODE END 3 */
 
-}
+}// Fin du main
 
 /** System Clock Configuration
 */

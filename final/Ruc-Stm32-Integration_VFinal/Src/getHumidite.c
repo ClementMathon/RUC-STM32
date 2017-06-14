@@ -3,7 +3,7 @@
 * RENVOI: humidite
 * DESCRIPTION: Récupère l'humidité du tableau Recevoir à l'indice 2 et 3
 *  puis convertit en décimale l'humidité
-* DATE : 29/03/2017
+* DATE : 14/06/2017
 * AUTEUR : J.MONNIER
 * CONTRAINTES D’UTILISATION: Nécessite d'abord d'avoir exécuté la fonction connexionRecuperationCapteur
 */

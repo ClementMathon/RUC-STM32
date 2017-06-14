@@ -1,6 +1,6 @@
 /* Nom fichier : acquisitionDonnees.h
 * Auteur : B.Loiodice
-* Date : 29/03/2017
+* Date : 14/06/2017
 * Description : Fichier header du projet RucSTM32.
 * Contient les prototypes des fonctions de connexionRecuperation,getTemperature, getHumidite, getPoids et leurs variables globales associées.
 * A inclure dans chacun des fichiers sources
@@ -14,10 +14,10 @@
 #include "string.h"
 
 // Ces variables sont declares dans le main
-extern I2C_HandleTypeDef hi2c2;
-extern ADC_HandleTypeDef hadc1;
-extern UART_HandleTypeDef huart4;
-extern UART_HandleTypeDef huart2;
+extern I2C_HandleTypeDef hi2c2;         
+extern ADC_HandleTypeDef hadc1;         
+extern UART_HandleTypeDef huart4;       
+extern UART_HandleTypeDef huart2;       
 
 // Prototypes de nos fonctions
 void connexionRecuperationCapteur();
@@ -29,14 +29,9 @@ float reverseFloat(const float inFloat);
 float getPoids();
 
 // variables globales declares dans le main et utilisees par nos fonctions
-extern char flag;
-extern __IO uint8_t demande[3];
-extern __IO uint8_t test[3];
-extern __IO uint8_t recevoir[8];
-extern float humiditeTOTAL;
-extern int humiditeMB;
-extern int humiditeLB;
-extern float temperature;
-extern float temperatureTOTAL;
+extern char flag; 
+
+extern __IO uint8_t demande[3];                   
+extern __IO uint8_t recevoir[8];        
 
 #endif

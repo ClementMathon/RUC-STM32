@@ -116,7 +116,7 @@ void I2C2_ER_IRQHandler(void)
 void EXTI15_10_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI15_10_IRQn 0 */
-if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13));
+if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13)); // Debut condition if
   {
     if (flag == 0){
       flag = 1;

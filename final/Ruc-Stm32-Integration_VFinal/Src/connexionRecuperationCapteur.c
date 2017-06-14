@@ -1,11 +1,12 @@
 /** 
 * NOM FONCTION: connexionRecuperationCapteur
 * RENVOI: tempTOTAL
-* DESCRIPTION: Se connecte au capteur de température et humidité puis transmet les trames pour récupérer la température
+* DESCRIPTION: Se connecte au capteur de température et humidité puis transmet 
+* les trames pour récupérer la température
 * puis met le µc en écoute pour recevoir les données du capteur
-* DATE : 29/03/2017
+* DATE : 14/06/2017
 * AUTEUR : J.MONNIER
-* CONTRAINTES D’UTILISATION: Nécessite d'être exécute en premier pour utiliser les fonctions ci-dessus
+* CONTRAINTES D’UTILISATION: Nécessite d'être exécute en premier pour utiliser les fonctions getTemperature et getHumidite
 */
 
 #include "acquisitionDonnees.h"

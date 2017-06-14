@@ -69,11 +69,10 @@ unsigned floatToBits(float x)
 void sendData(float poids, float temp, float hygro)
 {
   char trame[35];
-// Construction de la chaine de caracteres qui constitue la commande AT
+// bulding of the AT command string
   sprintf(trame, "AT$SF= %x %x %x\r\n", floatToBits(reverseFloat(poids)), floatToBits(reverseFloat(temp)), floatToBits(reverseFloat(hygro)));
-// Envoi de la commande AT sur le modem
+// sending of the command to the modem
   HAL_UART_Transmit(&huart4, (uint8_t*)trame, 35, 100);
-// Envoi de la commande AT vers le terminal sur le Poste de developpement 
+// sending of the command to the devloppement port
   HAL_UART_Transmit(&huart2, (uint8_t*)trame, 35, 100);
-//  HAL_Delay(10);
 }
